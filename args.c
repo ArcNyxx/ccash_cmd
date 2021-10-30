@@ -10,7 +10,7 @@ static void
 copy_auth(char **dest, char *src, char **auth, unsigned long len)
 {
 	if (src[0] == '@') {
-		long index = atoi(src);
+		int index = atoi(src);
 		if (index == 0 || (index) > len)
 			die("ccash_cmd: 1-based auth index out of range (%d)\n", index);
 		*dest = auth[index - 1];
@@ -45,11 +45,20 @@ parse_args(Args *args, const char **argv)
 	for (i = 1; argv[i + 1] != NULL && argv[i + 2] != NULL; i += 2) {
 		for (j = 0; j < LENGTH(flags); ++j)
 			if (!strcmp(argv[i], flags[j].flag) || !strcmp(argv[i], flags[j].lflag)) {
-				*(&args_ptr + j * sizeof(void *)) = argv[i];
+				*(&args_ptr + j * sizeof(char *)) = argv[i + 1];
 				break;
 			}
 		if (j == LENGTH(flags))
 			die("ccash_cmd: %s is not a valid flag\n", argv[i]);
+	}
+
+	if (args_ptr.server[0] == '@') {
+		int index = atoi(src);
+		if (index == 0 || index > LENGTH(servers))
+			die("ccash_cmd: 1-based servers index out of range (%d)\n", index);
+		args->server = servers[index - 1];
+	} else {
+		args->server = args_ptr.server;
 	}
 
 	/* further parse flags but into respective data types */

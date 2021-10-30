@@ -44,7 +44,8 @@ static const Flag flags[] = {
 	{ "-c", "--amount" },
 	{ "-t", "--time" },
 	{ "-u", "--user" },
-	{ "-a", "--admin" }
+	{ "-a", "--admin" },
+	{ "-s", "--server" }
 };
 
 static const Endpoint eps[] = {
