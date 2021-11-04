@@ -34,9 +34,11 @@ enum info {
 	INFO_RET_NO_CONTENT = 5
 };
 
+#ifdef NEED_METHODS
 static const char *methods[] = {
 	"GET", "POST", "PATCH", "DELETE"
 };
+#endif /* NEED_METHODS */
 
 static const Flag flags[] = {
 	{ "-n", "--name" },
