@@ -87,14 +87,10 @@ parse_args(Args *args, const char **argv)
 		if (args->amount == 0)
 			die("ccash_cmd: amount parameter must be a non-zero number\n");
 	}
-	if (args->ep->req & REQ_TIME) {
-		if (!(args->ep->req & REQ_TIME_OPTIONAL) && args_ptr.time == NULL) {
-			die("ccash_cmd: %s command requires time parameter\n", argv[0]);
-		} else if (args_ptr.time != NULL) {
-			args->time = strtol(args_ptr.time, NULL, 10);
-			if (args->time == 0 && args_ptr.time[0] != '0')
-				die("ccash_cmd: time parameter must be a number\n");
-		}
+	if (args->ep->req & REQ_TIME && args_ptr.time != NULL) {
+		args->time = strtol(args_ptr.time, NULL, 10);
+		if (args->time == 0 && args_ptr.time[0] != '0')
+			die("ccash_cmd: time parameter must be a number\n");
 	}
 
 	if (args->ep->req & REQ_USER_AUTH) {

@@ -9,19 +9,23 @@ typedef struct flag {
 	const char *flag, *lflag;
 } Flag;
 
+typedef struct string {
+	const char *str;
+	unsigned long len;
+} String;
+
 enum req {
 	REQ_NONE = 0,
 
 	REQ_NAME = 1,
 	REQ_PASSWD = 2,
 	REQ_AMOUNT = 4,
-	REQ_TIME = 8,
+	REQ_TIME = 8, /* time always sent even though optional, earliest matters */
 
 	REQ_USER_AUTH = 16,
 	REQ_ADMIN_AUTH = 32,
 
-	REQ_NAME_APPEND = 64,
-	REQ_TIME_OPTIONAL = 128,
+	REQ_NAME_APPEND = 64
 };
 
 enum info {
@@ -39,6 +43,16 @@ static const char *methods[] = {
 	"GET", "POST", "PATCH", "DELETE"
 };
 #endif /* NEED_METHODS */
+
+#ifdef NEED_TOKENS
+#define MKSTRING(string) { string, sizeof(string) - 1 },
+static const String tokens[] = {
+	MKSTRING("\"name\": ")
+	MKSTRING("\"pass\": ")
+	MKSTRING("\"amount\": ")
+	MKSTRING("\"time\": ")
+};
+#endif /* NEED_TOKENS */
 
 static const Flag flags[] = {
 	{ "-n", "--name" },
@@ -101,7 +115,7 @@ static const Endpoint eps[] = {
 		REQ_ADMIN_AUTH,
 		INFO_RET_NO_CONTENT | INFO_METHOD_POST },
 	{ "prune", "admin/prune_users",
-		REQ_AMOUNT | REQ_TIME | REQ_TIME_OPTIONAL | REQ_ADMIN_AUTH,
+		REQ_AMOUNT | REQ_TIME | REQ_ADMIN_AUTH,
 		INFO_RET_OK | INFO_METHOD_POST },
 
 	/* passwd ctl */

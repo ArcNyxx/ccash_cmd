@@ -1,9 +1,12 @@
 #ifndef ARGS_H
 #define ARGS_H
 
-#ifndef ENDPOINT_H
 #include "endpoints.h"
-#endif /* ENDPOINT_H */
+
+typedef struct args {
+	const char *name, *passwd, *amount, *time, *auth, *server;
+	const Endpoint *ep;
+} ArgsR;
 
 typedef struct args {
 	const Endpoint *ep;

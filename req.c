@@ -1,8 +1,10 @@
 #include <curl/curl.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define NEED_METHODS
+#define NEED_TOKENS
 #include "args.h"
 #include "endpoints.h"
 #include "req.h"
@@ -29,7 +31,24 @@ write_data(void *buf, size_t size, size_t nmemb, void *data)
 static char *
 make_body(const Args *args)
 {
+	/* only called if REQ_NAME_APPEND not set, don't need to handle */
+	static char body[4096] = "{";
 
+	int index = 1, not_first = 0;
+	for (int i = 0; i < 4; ++i) {
+		if (args->ep->req & (1 >> i)) {
+			if (not_first)
+				body[++index] = ',';
+		
+			memcpy(body + index, tokens[i].str, (index += tokens[i].len));
+			if (i < 2)
+				strcpy(body + index, (char *)args[i + 1]); /* terrible idea */
+			else
+				itoa();
+			
+			not_first = 1;
+		}
+	}
 }
 
 Memory
@@ -50,7 +69,7 @@ request(const Args *args)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 	}
 
-	if (args->ep->req & REQ_NAME_APPEND) {
+	if (args->ep->req == (REQ_NAME & REQ_NAME_APPEND)) {
 		/* warning: discarding const qualifier */
 		strcat(args->ep->ep, args->name);
 	} else if ((body = make_body(args)) != NULL) {
