@@ -8,103 +8,93 @@
 #include "endpoints.h"
 #include "util.h"
 
-static void copy_auth(const char **dest, char *src,
-	const char **auth, unsigned long len);
+static void verify_auth(const char *auth);
+static void verify_name(const char *name);
 
 static void
-copy_auth(const char **dest, char *src, const char **auth, unsigned long len)
+verify_auth(const char *auth)
 {
-	if (src[0] == '@') {
-		unsigned long index = atoi(src);
-		if (index == 0 || index > len)
-			die("ccash_cmd: 1-based auth index out of range (%d)\n", index);
-		*dest = auth[index - 1];
-	} else {
-		*dest = src;
-	}
-
 	int i;
-	for (i = 0; i < 16 && *dest[i] != '\0' && *dest[i] != ':'; ++i)
-		if (!isalnum(*dest[i]) && *dest[i] != '_')
-			die("ccash_cmd: invalid character in username (%c)\n", *dest[i]);
-	if (i < 3 || i > 16)
-		die("ccash_cmd: username must be between 3 and 16 characters\n");
-	if (*dest[i] != ':')
-		die("ccash_cmd: password expected after username\n");
+	for (i = 0; i < 16 && name[i] != '\0' && name[i] != ':'; ++i)
+		if (!alnum(name[i]) && name[i] != '_')
+			die("ccash_cmd: invalid character in name (%c)\n", auth[i]);
+        if (i < 3 || i > 16)
+                die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", auth);
+	if (name[i] != ':')
+		die("ccash_cmd: auth name must be terminated with a colon (%s)\n", auth);
+}
+
+static void
+verify_name(const char *name)
+{
+	int i;
+	for (i = 0; i < 16 && name[i] != '\0'; ++i)
+		if (!isalnum(name[i]) && name[i] != '_')
+			die("ccash_cmd: invalid character in name (%c)\n", name[i]);
+        if (i < 3 || i > 16)
+                die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", name);
+}
+
+static inline int
+is_base10(const char *num)
+{
+	for (int i = 0; num[i] != '\0'; ++i)
+		if (!isdigit(num[i]))
+			return 0;
+	return 1;
 }
 
 void
 parse_args(Args *args, const char **argv)
 {
-	unsigned long i, j;
+	int i, j, index;
 	for (i = 0; i < LENGTH(eps); ++i)
 		if (!strcmp(eps[i].cmd, argv[0])) {
 			args->ep = &eps[i];
 			break;
 		}
 	if (args->ep == NULL)
-		die("ccash_cmd: %s is not a valid command\n", argv[0]);
+		die("ccash_cmd: [%s] is not a valid command\n", argv[0]);
 
-	/* parse flags into (char *) struct */
-	ArgsPtr args_ptr = { 0 };
 	for (i = 1; argv[i + 1] != NULL && argv[i + 2] != NULL; i += 2) {
 		for (j = 0; j < LENGTH(flags); ++j)
 			if (!strcmp(argv[i], flags[j].flag) || !strcmp(argv[i], flags[j].lflag)) {
-				*(const char **)(&args_ptr + j * sizeof(char *)) = argv[i + 1];
+				((char *)args)[j] = argv[i + 1];
 				break;
 			}
 		if (j == LENGTH(flags))
-			die("ccash_cmd: %s is not a valid flag\n", argv[i]);
+			die("ccash_cmd: [%s] is not a valid flag\n", argv[i]);
 	}
 
-	if (args_ptr.server[0] == '@') {
-		unsigned long index = strtol(args_ptr.server, NULL, 10);
+	for (i = 0; i < 4; ++i)
+		if (args->ep->req & 1 << i && ((char *)args)[i] == NULL)
+			die("ccash_cmd: [%s] is a required flag\n", flags[i].lflag);
+
+	if (args->server == NULL) {
+		die("ccash_cmd: [--server] is a required flag\n");
+	} else if (args->server[0] == '@') {
+		index = strtol(&args->server[1], NULL, 10);
 		if (index == 0 || index > LENGTH(servers))
 			die("ccash_cmd: 1-based servers index out of range (%d)\n", index);
 		args->server = servers[index - 1];
-	} else {
-		args->server = args_ptr.server;
 	}
-
-	/* further parse flags but into respective data types */
+	if (args->ep->req & REQ_AUTH) {
+		if (args->auth[0] == '@')
+			index = strtol(&args->auth[1], NULL, 10) - 1;
+			if (index == 0 || index > LENGTH(auth))
+				die("ccash_cmd: 1-based auth index out of range (%d)\n", index);
+			args->auth = auth[index - 1];
+		verify_auth(args->auth);
+	}
 	if (args->ep->req & REQ_NAME) {
-		if (args_ptr.name == NULL)
-			die("ccash_cmd: %s command requires name parameter\n", argv[0]);
-		args->name = args_ptr.name;
+		verify_name(args->name);
 		if (args->ep->req & REQ_NAME_APPEND)
-			return; /* skip rest, unnecessary */
+			return; /* skip unnecessary */
 	}
-	if (args->ep->req & REQ_PASSWD) {
-		if (args_ptr.amount == NULL)
-			die("ccash_cmd: %s command requires passwd parameter\n", argv[0]);
-		args->passwd = args_ptr.amount;
-	}
-	if (args->ep->req & REQ_AMOUNT) {
-		if (args_ptr.amount == NULL)
-			die("ccash_cmd: %s command requires amount parameter\n", argv[0]);
-		args->amount = strtol(args_ptr.amount, NULL, 10);
-			/* no handling for different ints */
-		if (args->amount == 0)
-			die("ccash_cmd: amount parameter must be a non-zero number\n");
-	}
-	if (args->ep->req & REQ_TIME && args_ptr.time != NULL) {
-		args->time = strtol(args_ptr.time, NULL, 10);
-		if (args->time == 0 && args_ptr.time[0] != '0')
-			die("ccash_cmd: time parameter must be a number\n");
-	}
-
-	if (args->ep->req & REQ_USER_AUTH) {
-		if (args_ptr.user != NULL)
-			copy_auth(&args->auth, args_ptr.user, user_auth, LENGTH(user_auth));
-		else if (args_ptr.admin != NULL)
-			copy_auth(&args->auth, args_ptr.admin, admin_auth, LENGTH(admin_auth));
-		else
-			die("ccash_cmd: %s command requires user authentication\n", argv[0]);
-	} else if (args->ep->req & REQ_ADMIN_AUTH) {
-		if (args_ptr.admin != NULL)
-			copy_auth(&args->auth, args_ptr.admin, admin_auth, LENGTH(admin_auth));
-		else
-			die("ccash_cmd: %s command requires admin authentication\n", argv[0]);
-	}
-	return;
+	if (args->ep->req & REQ_AMOUNT)
+		if (!is_base10(args->amount))
+			die("ccash_cmd: amount must be an integer");
+	if (args->ep->req & REQ_TIME)
+		if (args->time != NULL && !is_base10(args->time))
+			die("ccash_cmd: time must be an integer");
 }

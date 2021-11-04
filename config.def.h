@@ -5,11 +5,7 @@ const char *servers[] = {
 	"localhost"
 };
 
-const char *user_auth[] = {
-	"username:password"
-};
-
-const char *admin_auth[] = {
+const char *auth[] = {
 	"username:password"
 };
 

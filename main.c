@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "args.h"
 #include "util.h"
 
@@ -11,6 +9,4 @@ main(int argc, const char *argv[])
 
 	Args args = { 0 };
 	parse_args(&args, &argv[1]);
-
-
 }

@@ -4,7 +4,7 @@
 #include "endpoints.h"
 
 typedef struct args {
-	const char *name, *passwd, *amount, *time, *auth, *server;
+	const char *name, *passwd, *amount, *auth, *time, *server;
 	const Endpoint *ep;
 } ArgsR;
 
