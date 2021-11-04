@@ -1,51 +1,50 @@
+# ccash_cmd - command line interface for ccash servers
+# Copyright (C) 2021 FearlessDoggo21
 # see LICENCE file for licensing information
-# statb - simple info bar for dwm
+
 .POSIX:
 
 include config.mk
 
-SRC = statb.c
+SRC = $(wildcard *.c)
+HEAD = $(wildcard *.h)
 OBJ = $(SRC:.c=.o)
 
-all: options statb
+all: options ccash_cmd
 
 options:
-	@echo statb build options:
-	@echo "CFLAGS  = $(STATBCFLAGS)"
-	@echo "LDFLAGS = $(STATBLDFLAGS)"
+	@echo ccash_cmd build options:
+	@echo "CFLAGS  = $(CCASHCMDCFLAGS)"
+	@echo "LDFLAGS = $(CCASHCMDLDFLAGS)"
 	@echo "CC      = $(CC)"
 
-# note for development purposes overwrite
-config.h: config.def.h
+config.h:
 	cp config.def.h config.h
 
 .c.o:
-	$(CC) $(STATBCFLAGS) -c $<
+	$(CC) $(CCASHCMDCFLAGS) -c $<
 
-main.o: config.h
-func.o: config.h
+$(OBJ): $(HEAD) config.h config.mk
 
-$(OBJ): config.h config.mk
-
-statb: $(OBJ)
-	$(CC) -o $@ $(OBJ) $(STATBLDFLAGS)
+ccash_cmd: $(OBJ)
+	$(CC) -o $@ $(OBJ) $(CCASHCMDLDFLAGS)
 
 clean:
-	rm -f statb $(OBJ) statb-$(VERSION).tar.gz
+	rm -f ccash_cmd $(OBJ) ccash_cmd-$(VERSION).tar.gz
 
 dist: clean
-	mkdir -p statb-$(VERSION)
+	mkdir -p ccash_cmd-$(VERSION)
 	cp -R LICENCE Makefile README config.mk \
-		config.def.h $(SRC) statb-$(VERSION)
-	tar -cf - statb-$(VERSION) | gzip > statb-$(VERSION).tar.gz
-	rm -rf statb-$(VERSION)
+		config.def.h $(SRC) $(HEAD) ccash_cmd-$(VERSION)
+	tar -cf - ccash_cmd-$(VERSION) | gzip > ccash_cmd-$(VERSION).tar.gz
+	rm -rf ccash_cmd-$(VERSION)
 
-install: statb
+install: ccash_cmd
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f statb $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/statb
+	cp -f ccash_cmd $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/ccash_cmd
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/statb
+	rm -f $(DESTDIR)$(PREFIX)/bin/ccash_cmd
 
 .PHONY: all options clean dist install uninstall

@@ -26,7 +26,7 @@ enum req {
 
 enum info {
 	INFO_METHOD_GET = 0,
-	INFO_METHOD_POST = 1
+	INFO_METHOD_POST = 1,
 	INFO_METHOD_PATCH = 2,
 	INFO_METHOD_DELETE = 3,
 
@@ -48,6 +48,10 @@ static const Flag flags[] = {
 	{ "-s", "--server" }
 };
 
+/* extra room for name append, static so initialised to 0 */
+static char get_bal_endpoint[19 + 16] = "user/balance?name=";
+static char verify_user_endpoint[18 + 16] = "user/exists?name=";
+
 static const Endpoint eps[] = {
 	{ "properties", "properties",
 		REQ_NONE,
@@ -57,7 +61,7 @@ static const Endpoint eps[] = {
 		INFO_RET_NO_CONTENT | INFO_METHOD_POST },
 
 	/* bal ctl */
-	{ "get_bal", "user/balance?name=",
+	{ "get_bal", get_bal_endpoint,
 		REQ_NAME | REQ_NAME_APPEND,
 		INFO_RET_OK | INFO_METHOD_GET },
 	{ "send_funds", "user/transfer",
@@ -88,7 +92,7 @@ static const Endpoint eps[] = {
 		REQ_USER_AUTH,
 		INFO_RET_OK | INFO_METHOD_GET },
 	
-	{ "verify_user", "user/exists?name=",
+	{ "verify_user", verify_user_endpoint,
 		REQ_NAME | REQ_NAME_APPEND,
 		INFO_RET_NO_CONTENT | INFO_METHOD_GET },
 	{ "admin_verify_user", "admin/verify_account",

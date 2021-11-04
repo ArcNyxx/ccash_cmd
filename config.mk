@@ -1,18 +1,21 @@
+# ccash_cmd - command line interface for ccash servers
+# Copyright (C) 2021 FearlessDoggo21
 # see LICENCE file for licensing information
-# statb version
-VERSION = 0.1.1
+
+# ccash_cmd version
+VERSION = 0.0.0-indev
 
 # paths
 PREFIX = /usr/local
 
 # includes and libs
-LIBS = -lX11 -lasound
+LIBS = -lcurl
 
 # flags
 WPROFILE = -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes \
 -Wmissing-declarations -Wswitch-default -Wunreachable-code -Wcast-align \
 -Wpointer-arith -Wbad-function-cast -Winline -Wundef -Wnested-externs \
 -Wcast-qual -Wshadow -Wwrite-strings -Wno-unused-parameter -Wfloat-equal
-STATBCPPFLAGS = -DVERSION=\"$(VERSION)\" -D_XOPEN_SOURCE=600 $(WPROFILE)
-STATBCFLAGS = $(INCS) $(STATBCPPFLAGS) $(CPPFLAGS) $(CFLAGS)
-STATBLDFLAGS = $(LIBS) $(LDFLAGS)
+CCASHCMDCPPFLAGS = -DVERSION=\"$(VERSION)\" -D_XOPEN_SOURCE=600 $(WPROFILE)
+CCASHCMDCFLAGS = $(CCASHCMDCPPFLAGS) $(CPPFLAGS) $(CFLAGS)
+CCASHCMDLDFLAGS = $(LIBS) $(LDFLAGS)

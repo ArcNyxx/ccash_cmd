@@ -1,17 +1,22 @@
 #include <ctype.h>
+#include <stddef.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "args.h"
+#include "config.h"
 #include "endpoints.h"
 #include "util.h"
 
-static void copy_auth(char **dest, char *src);
+static void copy_auth(const char **dest, char *src,
+	const char **auth, unsigned long len);
 
 static void
-copy_auth(char **dest, char *src, char **auth, unsigned long len)
+copy_auth(const char **dest, char *src, const char **auth, unsigned long len)
 {
 	if (src[0] == '@') {
-		int index = atoi(src);
-		if (index == 0 || (index) > len)
+		unsigned long index = atoi(src);
+		if (index == 0 || index > len)
 			die("ccash_cmd: 1-based auth index out of range (%d)\n", index);
 		*dest = auth[index - 1];
 	} else {
@@ -31,7 +36,7 @@ copy_auth(char **dest, char *src, char **auth, unsigned long len)
 void
 parse_args(Args *args, const char **argv)
 {
-	int i, j;
+	unsigned long i, j;
 	for (i = 0; i < LENGTH(eps); ++i)
 		if (!strcmp(eps[i].cmd, argv[0])) {
 			args->ep = &eps[i];
@@ -45,7 +50,7 @@ parse_args(Args *args, const char **argv)
 	for (i = 1; argv[i + 1] != NULL && argv[i + 2] != NULL; i += 2) {
 		for (j = 0; j < LENGTH(flags); ++j)
 			if (!strcmp(argv[i], flags[j].flag) || !strcmp(argv[i], flags[j].lflag)) {
-				*(&args_ptr + j * sizeof(char *)) = argv[i + 1];
+				*(const char **)(&args_ptr + j * sizeof(char *)) = argv[i + 1];
 				break;
 			}
 		if (j == LENGTH(flags))
@@ -53,7 +58,7 @@ parse_args(Args *args, const char **argv)
 	}
 
 	if (args_ptr.server[0] == '@') {
-		int index = atoi(src);
+		unsigned long index = strtol(args_ptr.server, NULL, 10);
 		if (index == 0 || index > LENGTH(servers))
 			die("ccash_cmd: 1-based servers index out of range (%d)\n", index);
 		args->server = servers[index - 1];
@@ -62,45 +67,48 @@ parse_args(Args *args, const char **argv)
 	}
 
 	/* further parse flags but into respective data types */
-	if (args->ep.req & REQ_NAME) {
+	if (args->ep->req & REQ_NAME) {
 		if (args_ptr.name == NULL)
 			die("ccash_cmd: %s command requires name parameter\n", argv[0]);
 		args->name = args_ptr.name;
-		if (args->ep.req & REQ_NAME_APPEND)
+		if (args->ep->req & REQ_NAME_APPEND)
 			return; /* skip rest, unnecessary */
 	}
-	if (args->ep.req & REQ_PASSWD) {
+	if (args->ep->req & REQ_PASSWD) {
 		if (args_ptr.amount == NULL)
 			die("ccash_cmd: %s command requires passwd parameter\n", argv[0]);
 		args->passwd = args_ptr.amount;
 	}
-	if (args->ep.req & REQ_AMOUNT) {
+	if (args->ep->req & REQ_AMOUNT) {
 		if (args_ptr.amount == NULL)
 			die("ccash_cmd: %s command requires amount parameter\n", argv[0]);
-		args->amount = atol(args_ptr.amount); /* no handling for different ints */
+		args->amount = strtol(args_ptr.amount, NULL, 10);
+			/* no handling for different ints */
 		if (args->amount == 0)
 			die("ccash_cmd: amount parameter must be a non-zero number\n");
 	}
-	if (args->ep.req & REQ_TIME)
-		if (!(args->endpoing.ep.req & REQ_TIME_OPTIONAL) && args_ptr.time == NULL) {
+	if (args->ep->req & REQ_TIME) {
+		if (!(args->ep->req & REQ_TIME_OPTIONAL) && args_ptr.time == NULL) {
 			die("ccash_cmd: %s command requires time parameter\n", argv[0]);
 		} else if (args_ptr.time != NULL) {
-			args->time = atol(args_ptr.time);
+			args->time = strtol(args_ptr.time, NULL, 10);
 			if (args->time == 0 && args_ptr.time[0] != '0')
 				die("ccash_cmd: time parameter must be a number\n");
 		}
+	}
 
-	if (args->ep.req & REQ_USER_AUTH)
+	if (args->ep->req & REQ_USER_AUTH) {
 		if (args_ptr.user != NULL)
 			copy_auth(&args->auth, args_ptr.user, user_auth, LENGTH(user_auth));
 		else if (args_ptr.admin != NULL)
 			copy_auth(&args->auth, args_ptr.admin, admin_auth, LENGTH(admin_auth));
 		else
 			die("ccash_cmd: %s command requires user authentication\n", argv[0]);
-	else if (args->ep.req & REQ_ADMIN_AUTH)
+	} else if (args->ep->req & REQ_ADMIN_AUTH) {
 		if (args_ptr.admin != NULL)
-			copy_auth(&args->auth, args_ptr.admin, admin_auth, LEGNTH(admin_auth));
+			copy_auth(&args->auth, args_ptr.admin, admin_auth, LENGTH(admin_auth));
 		else
 			die("ccash_cmd: %s command requires admin authentication\n", argv[0]);
+	}
 	return;
 }

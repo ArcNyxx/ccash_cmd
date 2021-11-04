@@ -1,31 +1,14 @@
-ccash_cmd
-=========
-ccash
-
-
-statb - info bar
-================
-statb is a simple info bar for window managers which use WM_NAME for bars.
+ccash_cmd - command line interface for ccash servers
+====================================================
+ccash_cmd works as an efficient way to make requests to a ccash server, and
+formats their return.
 
 Requirements
 ------------
 Edit config.mk to match your local setup
 
-Afterwards enter the following command to build and install statb (if
+Afterwards enter the following command to build and install ccash_cmd (if
 necessary as root):
 
     make clean install
 
-
-Running statb
--------------
-Add the following line the your .xinitrc in the middle to start statb using
-startx:
-
-    statb &
-
-
-Configuration
--------------
-The configuration of statb is done by creating a custom config.h and
-(re)compiling the source code.

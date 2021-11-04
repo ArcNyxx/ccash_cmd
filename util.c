@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "util.h"
+
 void
 die(const char *fmt, ...)
 {
