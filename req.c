@@ -63,11 +63,13 @@ request(Args *args)
 	if ((curl = curl_easy_init()) == NULL)
 		die("ccash_cmd: unable to instantiate curl\n");
 
-
 	if (args->ep->info == (REQ_NAME & REQ_NAME_APPEND)) {
+		/* no need to check for auth or body, only for open get requests */
 		/* warning: discarding const qualifier */
 		strcat(args->ep->ep, args->name);
 	} else {
+		/* set request, make body, set auth */
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, methods[args->ep->info >> 6]);
 		if (args->ep->info & 128 && (body = make_body(args)) != NULL) {
 			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
 			curl_slist_append(slist, "Content-Type: application/json");
@@ -84,7 +86,6 @@ request(Args *args)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, methods[args->ep->info >> 6]);
 	curl_easy_setopt(curl, CURLOPT_URL, args->server);
 	if (curl_easy_perform(curl) != CURLE_OK)
 		die("ccash_cmd: unable to make request\n");
