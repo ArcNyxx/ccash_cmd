@@ -1,30 +1,6 @@
-#ifndef DEF_H
-#define DEF_H
-
-/* critical that struct args, enum req, and flags agree on order */
-
 typedef struct endpoint {
         const char *cmd, *ep, info;
 } Endpoint;
-
-typedef struct args {
-	const char *name, *passwd, *amount, *time, *auth, *server;
-	const Endpoint *ep;
-} Args;
-
-typedef struct flag {
-        const char *flag, *lflag;
-} Flag;
-
-typedef struct memory {
-	char *str;
-	unsigned long len, alloc;
-} Memory;
-
-typedef struct string {
-        const char *str;
-        unsigned long len;
-} String;
 
 enum req {
         REQ_NONE = 0,
@@ -33,7 +9,7 @@ enum req {
         REQ_NAME = 1,
         REQ_PASSWD = 2,
         REQ_AMOUNT = 4,
-        REQ_TIME = 8, /* time always sent even though optional, earliest matters */
+        REQ_TIME = 8,
         REQ_AUTH = 16,
 
         REQ_METHOD_GET = 0,
@@ -42,35 +18,10 @@ enum req {
         REQ_METHOD_PATCH = 128 + 64
 };
 
-static const Flag flags[] = {
-        { "-n", "--name" },
-        { "-p", "--passwd" },
-        { "-c", "--amount" },
-        { "-t", "--time" },
-        { "-a", "--auth" },
-        { "-s", "--server" }
-};
-
-#ifdef SRC_METHODS_TOKENS
-static const char *methods[] = {
-        "GET", "POST", "PATCH", "DELETE"
-};
-
-#define MKSTRING(string) { string, sizeof(string) - 1 }
-static const String tokens[] = {
-        MKSTRING("\"name\":"),
-        MKSTRING("\"pass\":"),
-        MKSTRING("\"amount\":"),
-        MKSTRING("\"time\":")
-};
-#endif /* SRC_METHODS_TOKENS */
-
 /* extra room for name append, static so initialised to 0 */
-#define DEFSTRING(name, string, extra) \
-        static char name[sizeof(string) + extra] = string
-DEFSTRING(get_bal_endpoint, "user/balance?name=", 16);
-DEFSTRING(verify_user_endpoint, "user/exists?name=", 16);
-
+#define STREXTRA(name, string, extra) name[sizeof(string) + extra] = string
+static char STREXTRA(get_bal_endpoint, "user/balance?name=", 16);
+static char STREXTRA(verify_user_endpoint, "user/exists?name=", 16);
 static const Endpoint eps[] = {
         { "properties", "properties", REQ_METHOD_GET },
         { "close", "admin/shutdown", REQ_AUTH | REQ_METHOD_POST },
@@ -107,5 +58,3 @@ static const Endpoint eps[] = {
                 REQ_NAME | REQ_PASSWD | REQ_AUTH | REQ_METHOD_PATCH },
         { "verify_passwd", "user/verify_password", REQ_AUTH | REQ_METHOD_POST }
 };
-
-#endif /* DEF_H */

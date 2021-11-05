@@ -3,14 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SRC_METHODS_TOKENS
-#include "args.h"
-#include "def.h"
+#include "endpoint.h"
+#include "arg.h"
 #include "req.h"
 #include "util.h"
 
 static size_t write_data(void *buf, size_t size, size_t nmemb, void *data);
 static char *make_body(Args *args);
+
+static const char *methods[] = { "GET", "DELETE", "POST", "PATCH" };
+static const char *tokens[] = {
+        "\"name\":", "\"pass\":", "\"amount\":", "\"time\":"
+};
 
 static size_t
 write_data(void *buf, size_t size, size_t nmemb, void *data)
@@ -32,14 +36,14 @@ static char *
 make_body(Args *args)
 {
 	static char body[4096];
-	int i, index = 0, len;
+	int i, index = 0, len, tklen;
 	for (i = 0; i < 4; ++i) {
 		if (((char **)args)[i]) {
-			len = strlen(((char **)args)[i]);
-			memcpy(body + index, tokens[i].str, tokens[i].len);
-			memcpy(body + index + tokens[i].len, ((char **)args)[i], len);
-			body[len + tokens[i].len] = ',';
-			index += len + tokens[i].len + 1;
+			len = strlen(((char **)args)[i]), tklen = i != 2 ? 7 : 9;
+			memcpy(body + index, tokens[i], tklen);
+			memcpy(body + index + tklen, ((char **)args)[i], len);
+			body[len + tklen] = ',';
+			index += len + tklen + 1;
 		}
 	}
 	body[index - 1] = '}';

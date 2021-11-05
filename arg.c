@@ -3,13 +3,26 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "args.h"
+#include "endpoint.h"
+#include "arg.h"
 #include "config.h"
-#include "def.h"
 #include "util.h"
+
+typedef struct flag {
+        const char *flag, *lflag;
+} Flag;
 
 static void verify_auth(const char *auth);
 static void verify_name(const char *name);
+
+static const Flag flags[] = {
+        { "-n", "--name" },
+        { "-p", "--passwd" },
+        { "-c", "--amount" },
+        { "-t", "--time" },
+        { "-a", "--auth" },
+        { "-s", "--server" }
+};
 
 static void
 verify_auth(const char *str)
