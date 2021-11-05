@@ -51,6 +51,7 @@ static const Flag flags[] = {
         { "-s", "--server" }
 };
 
+#ifdef SRC_METHODS_TOKENS
 static const char *methods[] = {
         "GET", "POST", "PATCH", "DELETE"
 };
@@ -62,6 +63,7 @@ static const String tokens[] = {
         MKSTRING("\"amount\":"),
         MKSTRING("\"time\":")
 };
+#endif /* SRC_METHODS_TOKENS */
 
 /* extra room for name append, static so initialised to 0 */
 #define DEFSTRING(name, string, extra) \

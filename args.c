@@ -68,10 +68,9 @@ parse_args(Args *args, const char **argv)
 
 	if (args->server == NULL)
 		die("ccash_cmd: [--server] is a required flag\n");
-	for (i = 0; i < 5; ++i)
-		if (args->ep->info & 1 << i && ((const char **)args)[i] == NULL)
-			if (i != 3) /* time is always optional */
-				die("ccash_cmd: [%s] is a required flag\n", flags[i].lflag);
+	for (i = 0; i < 5; ++i) /* time is always optional */
+		if (args->ep->info & 1 << i && ((const char **)args)[i] == NULL && i != 3)
+			die("ccash_cmd: [%s] is a required flag\n", flags[i].lflag);
 
 	if (args->server[0] == '@') {
 		index = strtol(&args->server[1], NULL, 10);
