@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NEED_METHODS
-#define NEED_TOKENS
 #include "args.h"
-#include "endpoints.h"
+#include "def.h"
 #include "req.h"
 #include "util.h"
 
@@ -31,8 +29,14 @@ write_data(void *buf, size_t size, size_t nmemb, void *data)
 static char *
 make_body(const Args *args)
 {
-	/* only called if REQ_NAME_APPEND not set, don't need to handle */
 	static char body[4096] = "{";
+	
+	for (int i = 0; i < 4; ++i) {
+		
+	}
+
+
+	int index = 0;
 
 	int index = 1, not_first = 0;
 	for (int i = 0; i < 4; ++i) {
@@ -64,21 +68,23 @@ request(const Args *args)
 	if ((curl = curl_easy_init()) == NULL)
 		die("ccash_cmd: unable to instantiate curl\n");
 
-	if (args->auth != NULL) {
-		curl_easy_setopt(curl, CURLOPT_USERPWD, args->auth);
-		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-	}
 
 	if (args->ep->req == (REQ_NAME & REQ_NAME_APPEND)) {
 		/* warning: discarding const qualifier */
 		strcat(args->ep->ep, args->name);
-	} else if ((body = make_body(args)) != NULL) {
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
-		curl_slist_append(slist, "Content-Type: application/json");
+	} else {
+		if ((body = make_body(args)) != NULL) {
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
+			curl_slist_append(slist, "Content-Type: application/json");
+		}
+		if (args->auth != NULL) {
+			curl_easy_setopt(curl, CURLOPT_USERPWD, args->auth);
+			curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		}
 	}
 	curl_slist_append(slist, "Expect:");
 
-	if ((mem.str = malloc(mem.len)) == NULL)
+	if ((mem.str = malloc(mem.alloc)) == NULL)
 		die_perror("ccash_cmd: unable to allocate memory\n");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
@@ -93,6 +99,5 @@ request(const Args *args)
 	curl_slist_free_all(slist);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
-
 	return mem;
 }

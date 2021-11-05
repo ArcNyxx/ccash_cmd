@@ -1,10 +1,7 @@
 #ifndef REQ_H
 #define REQ_H
 
-typedef struct memory {
-        char *str;
-        size_t len, alloc;
-} Memory;
+#include "def.h"
 
 Memory request(const Args *args);
 

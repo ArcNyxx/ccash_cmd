@@ -1,11 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-const char *servers[] = {
+static const char *servers[] = {
 	"localhost"
 };
 
-const char *auth[] = {
+static const char *auth[] = {
 	"username:password"
 };
 
