@@ -6,40 +6,35 @@
 
 include config.mk
 
-SRC = ccash_cmd.c req.c arg.c util.c
-HEAD = $(wildcard *.h)
+SRC = arg.c ccash_cmd.c endpoint.c print.c req.c util.c
+HEAD = arg.h endpoint.h print.h req.h util.h
 OBJ = $(SRC:.c=.o)
 
-all: options ccash_cmd
-
-options:
-	@echo ccash_cmd build options:
-	@echo "CFLAGS  = $(CCASHCMDCFLAGS)"
-	@echo "LDFLAGS = $(CCASHCMDLDFLAGS)"
-	@echo "CC      = $(CC)"
+all: ccash_cmd
 
 config.h:
 	cp config.def.h config.h
 
-.c.o:
-	$(CC) $(CCASHCMDCFLAGS) -c $<
-
 $(OBJ): $(HEAD) config.h config.mk
 
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
 ccash_cmd: $(OBJ)
-	$(CC) -o $@ $(OBJ) $(CCASHCMDLDFLAGS)
+	$(CC) $(OBJ) $(LDFLAGS) -o $@
 
 clean:
-	rm -f ccash_cmd $(OBJ) ccash_cmd-$(VERSION).tar.gz
+	rm -rf ccash_cmd $(OBJ) ccash_cmd-$(VERSION).tar.gz
 
 dist: clean
 	mkdir -p ccash_cmd-$(VERSION)
-	cp -R LICENCE Makefile README config.mk \
-		config.def.h $(SRC) $(HEAD) ccash_cmd-$(VERSION)
-	tar -cf - ccash_cmd-$(VERSION) | gzip > ccash_cmd-$(VERSION).tar.gz
+	cp -r LICENCE README Makefile config.mk $(SRC) $(HEAD) config.def.h \
+		ccash_cmd-$(VERSION)
+	tar -cf ccash_cmd-$(VERSION).tar ccash_cmd-$(VERSION)
+	gzip ccash_cmd-$(VERSION).tar
 	rm -rf ccash_cmd-$(VERSION)
 
-install: ccash_cmd
+install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp -f ccash_cmd $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/ccash_cmd
@@ -47,4 +42,10 @@ install: ccash_cmd
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/ccash_cmd
 
-.PHONY: all options clean dist install uninstall
+options:
+	@echo ccash_cmd build options
+	@echo "CFLAGS = $(CFLAGS)"
+	@echo "LDFLAGS = $(LDFLAGS)"
+
+# implementation defined
+.PHONY: all clean dist install uninstall options

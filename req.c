@@ -98,7 +98,7 @@ request(Args *args)
 
 	strcpy(server + servlen, "api/");
 	servlen += 4;
-	if (strcmp(args->ep->cmd, "properties")) { /* properties are version independent */
+	if (args->ep != eps) { /* properties are version independent */
 		strcpy(server + servlen, "v1/");
 		servlen += 3;
 	}
