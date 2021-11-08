@@ -12,3 +12,8 @@ necessary as root):
 
     make clean install
 
+
+Configuration
+-------------
+The configuration of ccash_cmd is done by creating a custom config.h and
+(re)compiling the source code.
