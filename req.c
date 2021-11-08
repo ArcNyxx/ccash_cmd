@@ -27,7 +27,7 @@ write_data(void *buf, size_t size, size_t nmemb, void *data)
 			die_perror("ccash_cmd: unable to allocate memory\n");
 	}
 
-	register char *write = mem->str + mem->len; /* prevents sequencing error */
+	char *write = mem->str + mem->len; /* prevents sequencing error */
 	memcpy(write, buf, mem->len = size * nmemb);
 	return size * nmemb;
 }
@@ -63,7 +63,7 @@ request(Args *args)
 	if ((curl = curl_easy_init()) == NULL)
 		die("ccash_cmd: unable to instantiate curl\n");
 
-	if (args->ep->info == (REQ_NAME & REQ_NAME_APPEND)) {
+	if (args->ep->info == (REQ_NAME | REQ_NAME_APPEND)) {
 		/* no need to check for auth or body, only for open get requests */
 		/* warning: discarding const qualifier */
 		strcat(args->ep->ep, args->name);
@@ -86,7 +86,25 @@ request(Args *args)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
-	curl_easy_setopt(curl, CURLOPT_URL, args->server);
+	/* append the endpoint to the server, allocate >maximum endpoint length */
+	char *server;
+	unsigned long servlen = strlen(args->server);
+	if ((server = malloc(servlen + 50)) == NULL)
+		die_perror("ccash_cmd: unable to allocate memory\n");
+
+	memcpy(server, args->server, servlen);
+	if (server[servlen] != '/')
+		server[servlen++] = '/';
+
+	strcpy(server + servlen, "api/");
+	servlen += 4;
+	if (strcmp(args->ep->cmd, "properties")) { /* properties are version independent */
+		strcpy(server + servlen, "v1/");
+		servlen += 3;
+	}
+	strcpy(server + servlen, args->ep->ep);
+
+	curl_easy_setopt(curl, CURLOPT_URL, server);
 	if (curl_easy_perform(curl) != CURLE_OK)
 		die("ccash_cmd: unable to make request\n");
 

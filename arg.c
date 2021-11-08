@@ -70,7 +70,7 @@ parse_args(Args *args, const char **argv)
 		die("ccash_cmd: [%s] is not a valid command\n", argv[0]);
 
 	/* parse arguments into struct by casting struct to cstring array */
-	for (i = 1; argv[i + 1] != NULL && argv[i + 2] != NULL; i += 2) {
+	for (i = 1; argv[i] != NULL && argv[i + 1] != NULL; i += 2) {
 		for (j = 0; j < LENGTH(flags); ++j)
 			if (!strcmp(argv[i], flags[j].flag) || !strcmp(argv[i], flags[j].lflag)) {
 				((const char **)args)[j] = argv[i + 1];
@@ -94,6 +94,7 @@ parse_args(Args *args, const char **argv)
 			die("ccash_cmd: 1-based servers index out of range (%d)\n", index);
 		args->server = servers[index - 1];
 	}
+
 	if (args->ep->info & REQ_NAME) {
 		verify_name(args->name);
 		if (args->ep->info & REQ_NAME_APPEND)

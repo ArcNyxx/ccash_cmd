@@ -6,7 +6,7 @@
 
 include config.mk
 
-SRC = $(wildcard *.c)
+SRC = ccash_cmd.c req.c arg.c util.c
 HEAD = $(wildcard *.h)
 OBJ = $(SRC:.c=.o)
 
