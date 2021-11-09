@@ -48,7 +48,7 @@ verify_name(const char *name)
                 die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", name);
 }
 
-static inline int
+static int
 is_base10(const char *num)
 {
 	for (int i = 0; num[i] != '\0'; ++i)
