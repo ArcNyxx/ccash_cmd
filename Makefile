@@ -28,19 +28,23 @@ clean:
 
 dist: clean
 	mkdir -p ccash_cmd-$(VERSION)
-	cp -r LICENCE README Makefile config.mk $(SRC) $(HEAD) config.def.h \
-		ccash_cmd-$(VERSION)
+	cp -r LICENCE README Makefile ccash_cmd.1 config.mk $(SRC) $(HEAD) \
+		config.def.h ccash_cmd-$(VERSION)
 	tar -cf ccash_cmd-$(VERSION).tar ccash_cmd-$(VERSION)
 	gzip ccash_cmd-$(VERSION).tar
 	rm -rf ccash_cmd-$(VERSION)
 
 install: all
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	mkdir -p $(DESTDIR)$(PREFIX)/bin $(DESTDIR)$(MANPREFIX)/man1
 	cp -f ccash_cmd $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/ccash_cmd
+	sed "s/VERSION/$(VERSION)/g" < ccash_cmd.1 > \
+		$(DESTDIR)$(MANPREFIX)/man1/ccash_cmd.1
+	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/ccash_cmd.1
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/ccash_cmd
+	rm -f $(DESTDIR)$(PREFIX)/bin/ccash_cmd \
+		$(DESTDIR)$(MANPREFIX)/man1/ccash_cmd.1
 
 options:
 	@echo ccash_cmd build options

@@ -86,7 +86,7 @@ request(Args *args)
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 
 	Memory body = { .len = 0, .alloc = 4096 },
-	       head = { .len = 0, .alloc = 4096 };
+		head = { .len = 0, .alloc = 4096 };
 	if ((body.str = malloc(4096)) == NULL || (head.str = malloc(4096)) == NULL)
 		die_perror("ccash_cmd: unable to allocate memory\n");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);

@@ -1,0 +1,30 @@
+.TH CCASH_CMD 1 ccash_cmd\-VERSION
+.SH NAME
+ccash_cmd \- command line interface for ccash servers
+.SH SYNOPSIS
+\fBccash_cmd\fR [\fIcommand\fR] [\fIoption\fR ...]
+.SH DESCRIPTION
+\fBccash_cmd\fR is a command line interface for \fBccash\fR servers focusing on command efficiency and usefulness as well as program size and speed.  For this reason, it allows both short and long versions of flags, it allows for compile-time inclusion of predetermined servers and usernames and passwords in a list for runtime use, and it is written in C.
+.SH OPTIONS
+.TP
+[\fB\-n\fR, \fB\-\-name\fR = \fIname\fR]
+Sends a name with the request.  The provided name must conform with \fBccash\fR username restrictions, that is be between 3 and 16 characters long and be composed of lowercase letters, numbers, and underscores.
+.TP
+[\fB\-p\fR, \fB\-\-passwd\fR = \fIpasswd\fR]
+Sends a password with the request.
+.TP
+[\fB\-c\fR, \fB\-\-amount\fR = \fIamount\fR]
+Sends an amount with the request.  This option must be a base-10 number.
+.TP
+[\fB\-t\fR, \fB\-\-time\fR = \fItime\fR]
+Sends a time with the request.  This option must be a base-10 number but is always optional.
+.TP
+[\fB\-a\fR, \fB\-\-auth\fR = \fB@\fIn\fR, \fIauth\fR]
+Selects the username and password. \fIn\fR is a one-based index into the configured \fIauth\fR array.  Alternatively, profide the full username and password of the user to authenticate as.  The provided username must comply with \fBccash\fR username restrictions (see \fIname\fR), and it must be combined with the password in HTTP basic authentification fashion: \fIusername\fR:\fIpassword\fR.
+.TP
+[\fB\-s\fR, \fB\-\-server\fR = \fB@\fIn\fR, \fIserver\fR]
+Selects the server, \fIn\fR is a one-based index into the configured \fIservers\fR array.  Alternatively, provide the full address of the server.  This is a required argument.
+.SH CUSTOMISATION
+\fBccash_cmd\fR is configurable by creating a custom \fIconfig.h\fR and (re)compiling the source code.  Alternatively, it can be customised by directly editing the source code or even some static data arrays within it.  This keeps it fast, secure, and simple.
+.SH BUGS
+Send all bug reports to \fIhttps://github.com/fearlessdoggo21/ccash_cmd/issues\fR, and all patches to \fIhttps://github.com/fearlessdoggo21/ccash_cmd/pulls\fN.
