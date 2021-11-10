@@ -56,10 +56,13 @@ print_prop(const char *body)
 
 	version = strtoul(body + 11, &endp, 10);
 	maxlog = strtoul(endp + 11, &endp, 10);
-	endp += 18;
-	printf("ccash_cmd: server:\nversion: %lu\nmax_log: %lu\n"
-		"return_on_delete_account: %.*s\n",
-		version, maxlog, (int)(strchr(endp, '"') - endp), endp);
+	printf("ccash_cmd: server:\nversion: %lu\nmax_log: %lu\n", version, maxlog);
+
+	if (endp[0] != '}') {
+		endp += 18;
+		printf("return_on_delete_account: %.*s\n",
+			(int)(strchr(endp, '"') - endp), endp);
+	}
 }
 
 void
