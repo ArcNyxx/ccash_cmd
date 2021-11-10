@@ -1,6 +1,5 @@
-typedef struct memory {
-        char *str;
-        unsigned long len, alloc;
-} Memory;
+typedef struct response {
+	const char *head, *body;
+} Response;
 
-Memory request(Args *args);
+Response request(Args *args);

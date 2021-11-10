@@ -8,69 +8,93 @@
 #include "req.h"
 #include "print.h"
 
-static void print_exit(const char *fmt, ...);
+static void print_fin(const char *fmt, ...);
+static void print_log(const char *body);
+static void print_prop(const char *body);
 
 static void
-print_exit(const char *fmt, ...)
+print_fin(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(stdout, fmt, args);
 	va_end(args);
-	exit(0);
+}
+
+static void
+print_log(const char *body)
+{
+	unsigned long amount, time;
+	const char *sender, *recipient;
+	char *endp;
+	body += 1;
+
+	printf("ccash_cmd: server: logs:\n");
+	while (1) {
+		if (body[0] == ']')
+			return;
+
+		sender = body + 7;
+		body = strchr(body + 7, '"');
+		recipient = body + 10;
+		body = strchr(body + 10, '"');
+
+		amount = strtoul(body + 11, &endp, 10);
+		time = strtoul(body + 8, &endp, 10);
+		body = endp + 2;
+
+		printf("sender: %s\nrecipient: %s\namount: %lu\ntime: %lu\n",
+			sender, recipient, amount, time);
+	}
+}
+
+static void
+print_prop(const char *body)
+{
+	unsigned long version, maxlog;
+	char *endp;
+
+	version = strtoul(body + 11, &endp, 10);
+	maxlog = strtoul(endp + 11, &endp, 10);
+	endp += 18;
+	printf("ccash_cmd: server:\nversion: %lu\nmax_log: %lu\n"
+		"return_on_delete_account: %.*s\n",
+		version, maxlog, (int)(strchr(endp, '"') - endp), endp);
 }
 
 void
-print_res(const Args args, const Memory mem)
+print_res(const Args args, const Response res)
 {
-	int code = atoi(mem.str + 9), value;
-	char *body = strstr(mem.str, "\r\n\r\n") + 4;
-
-	switch (code) {
+	switch(strtol(strchr(res.head, ' ') + 1, NULL, 10)) {
 	default: break;
+	case 204:
+		print_fin("ccash_cmd: server: success\n");
+		return;
 	case 401:
-		print_exit("ccash_cmd: server: invalid username or password (%s)\n",
+		print_fin("ccash_cmd: server: invalid username or password (%s)\n",
 			args.auth);
 		return;
 	case 404:
 		if (args.ep == &eps[10])
-			print_exit("ccash_cmd: server: logs are disabled\n");
+			print_fin("ccash_cmd: server: logs are disabled\n");
 		else
-			print_exit("ccash_cmd: server: user not found (%s)\n", args.name);
+			print_fin("ccash_cmd: server: user not found (%s)\n", args.name);
 		return;
 	case 409:
-		print_exit("ccash_cmd: server: user already exists (%s)\n", args.name);
-		return;
-	case 204:
-		print_exit("ccash_cmd: server: success\n");
+		print_fin("ccash_cmd: server: user already exists (%s)\n", args.name);
 		return;
 	}
 
 	/* only 200 OK remains, require specific function to print values */
-	if (body[0] == '[') {
-		unsigned long amount, time;
-		char *to, *from;
-		++body;
-
-		printf("ccash_cmd: server:\n");
-		while (sscanf(body, "{\"to\":\"%s\",\"from\":\"%s\","
-			"\"amount\":%lu,\"time\":%lu},", to, from, &amount, &time) == 4)
-			printf("\nsender: %s\nrecipient: %s\namount: %lu\ntime: %lu\n", to, from, amount, time);
-	} else if (body[0] == '{') {
-		int version, maxlog;
-		char *retdel;
-
-		value = sscanf(body, "{\"version\":%d,\"max_log\":%d,\"return_on_del\":\"%s\"}",
-			&version, &maxlog, retdel);
-		printf("ccash_cmd: server\nversion: %d\nmax_log : %d\n", version, maxlog);
-		if (value == 3)
-			printf("return_on_delete_account: %s\n", retdel);
-		exit(0);
+	if (res.body[0] == '[') {
+		print_log(res.body);
+	} else if (res.body[0] == '{') {
+		print_prop(res.body);
 	} else {
-		value = strtol(body, NULL, 10);
+		unsigned long value = strtol(res.body, NULL, 10);
 		if (args.ep == &eps[13])
-			print_exit("ccash_cmd: server: (%d) users were pruned\n", value);
+			print_fin("ccash_cmd: server: users pruned (%lu)\n", value);
 		else
-			print_exit("ccash_cmd: server: the user's balance is now (%d)\n", value);
+			print_fin("ccash_cmd: server: user's balance is now (%lu)\n", value);
 	}
 }

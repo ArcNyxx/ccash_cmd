@@ -1,5 +1,6 @@
 typedef struct endpoint {
-        const char *cmd, *ep, info;
+        const char *cmd, *ep;
+	const unsigned char info;
 } Endpoint;
 
 enum req {

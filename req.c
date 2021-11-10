@@ -8,83 +8,90 @@
 #include "req.h"
 #include "util.h"
 
-static size_t write_data(void *buf, size_t size, size_t nmemb, void *data);
+typedef struct memory {
+        char *str;
+        unsigned long len, alloc;
+} Memory;
+
 static char *make_body(Args *args);
+static size_t write_data(void *buf, size_t size, size_t nmemb, void *data);
 
 static const char *methods[] = { "GET", "DELETE", "POST", "PATCH" };
 static const char *tokens[] = {
-        "\"name\":", "\"pass\":", "\"amount\":", "\"time\":"
+        "\"name\":\"", "\"pass\":\"", "\"amount\":", "\"time\":"
 };
+
+static char *
+make_body(Args *args)
+{
+	static char body[512] = "{";
+	int index = 1, len;
+	for (int i = 0; i < 4; ++i) {
+		if (((char **)args)[i] == NULL)
+			continue;
+		memcpy(&body[index], tokens[i], len = strlen(tokens[i]));
+		index += len;
+		memcpy(&body[index], ((char **)args)[i], len = strlen(((char **)args)[i]));
+		index += len;
+		if (i < 2)
+			body[index++] = '"';
+		body[index++] = ',';
+	}
+
+	body[index - 1] = '}';
+	body[index] = '\0';
+	return body;
+}
 
 static size_t
 write_data(void *buf, size_t size, size_t nmemb, void *data)
 {
 	Memory *mem = (Memory *)data;
-	if (mem->len + size * nmemb > mem->alloc) {
-		mem->alloc = mem->len + size * nmemb + 4096;
-		mem->alloc -= mem->alloc % 4096;
-		if ((mem->str = realloc(mem->str, mem->alloc)) == NULL)
+	if (mem->len + size * nmemb >= mem->alloc)
+		if ((mem->str = realloc(mem->str,
+			(mem->alloc += size * nmemb + 2048))) == NULL)
 			die_perror("ccash_cmd: unable to allocate memory\n");
-	}
 
 	char *write = mem->str + mem->len; /* prevents sequencing error */
-	memcpy(write, buf, mem->len = size * nmemb);
+	memcpy(write, buf, mem->len += size * nmemb);
 	return size * nmemb;
 }
 
-static char *
-make_body(Args *args)
-{
-	static char body[4096];
-	int i, index = 0, len, tklen;
-	for (i = 0; i < 4; ++i) {
-		if (((char **)args)[i]) {
-			len = strlen(((char **)args)[i]), tklen = i != 2 ? 7 : 9;
-			memcpy(body + index, tokens[i], tklen);
-			memcpy(body + index + tklen, ((char **)args)[i], len);
-			body[len + tklen] = ',';
-			index += len + tklen + 1;
-		}
-	}
-	body[index - 1] = '}';
-	return body;
-}
-
-Memory
+Response
 request(Args *args)
 {
 	CURL *curl;
 	struct curl_slist *slist = NULL;
-	char *body;
-	Memory mem = { .len = 0, .alloc = 4096 };
-
 	if (curl_global_init(CURL_GLOBAL_SSL))
 		die("ccash_cmd: unable to initialise curl\n");
 	if ((curl = curl_easy_init()) == NULL)
 		die("ccash_cmd: unable to instantiate curl\n");
 
 	if (args->ep->info == (REQ_NAME | REQ_NAME_APPEND)) {
-		/* no need to check for auth or body, only for open get requests */
-		/* warning: discarding const qualifier */
+		/* no need to get auth or body */
 		strcat(args->ep->ep, args->name);
 	} else {
-		/* set request, make body, set auth */
+		/* set http verb, make body if PUT or POST, set auth */
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, methods[args->ep->info >> 6]);
-		if (args->ep->info & 128 && (body = make_body(args)) != NULL) {
-			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
-			curl_slist_append(slist, "Content-Type: application/json");
+		if (args->ep->info & 128) {
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, make_body(args));
+			slist = curl_slist_append(slist, "Content-Type: application/json");
 		}
 		if (args->auth != NULL) {
 			curl_easy_setopt(curl, CURLOPT_USERPWD, args->auth);
 			curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 		}
 	}
-	curl_slist_append(slist, "Expect:");
+	slist = curl_slist_append(slist, "Expect:");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 
-	if ((mem.str = malloc(mem.alloc)) == NULL)
+	Memory body = { .len = 0, .alloc = 4096 },
+	       head = { .len = 0, .alloc = 4096 };
+	if ((body.str = malloc(4096)) == NULL || (head.str = malloc(4096)) == NULL)
 		die_perror("ccash_cmd: unable to allocate memory\n");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &head);
 
 	/* append the endpoint to the server, allocate >maximum endpoint length */
 	char *server;
@@ -93,14 +100,16 @@ request(Args *args)
 		die_perror("ccash_cmd: unable to allocate memory\n");
 
 	memcpy(server, args->server, servlen);
-	if (server[servlen] != '/')
+	if (server[servlen - 1] != '/')
 		server[servlen++] = '/';
 
-	strcpy(server + servlen, "api/");
-	servlen += 4;
-	if (args->ep != eps) { /* properties are version independent */
-		strcpy(server + servlen, "v1/");
-		servlen += 3;
+	/* properties are version independent */
+	if (args->ep == eps) {
+		memcpy(server + servlen, "api/", 4);
+		servlen += 4;
+	} else {
+		memcpy(server + servlen, "api/v1/", 7);
+		servlen += 7;
 	}
 	strcpy(server + servlen, args->ep->ep);
 
@@ -108,8 +117,11 @@ request(Args *args)
 	if (curl_easy_perform(curl) != CURLE_OK)
 		die("ccash_cmd: unable to make request\n");
 
+	/* null terminate string */
+	body.str[body.len] = '\0';
+
 	curl_slist_free_all(slist);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
-	return mem;
+	return (Response){ head.str, body.str };
 }

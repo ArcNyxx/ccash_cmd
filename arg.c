@@ -12,6 +12,7 @@ typedef struct flag {
         const char *flag, *lflag;
 } Flag;
 
+static int is_base10(const char *num);
 static void verify_auth(const char *auth);
 static void verify_name(const char *name);
 
@@ -23,6 +24,15 @@ static const Flag flags[] = {
         { "-a", "--auth" },
         { "-s", "--server" }
 };
+
+static int
+is_base10(const char *num)
+{
+	for (int i = 0; num[i] != '\0'; ++i)
+		if (!isdigit(num[i]))
+			return 0;
+	return 1;
+}
 
 static void
 verify_auth(const char *str)
@@ -46,15 +56,6 @@ verify_name(const char *name)
 			die("ccash_cmd: invalid character in name (%c)\n", name[i]);
         if (i < 3 || i > 16)
                 die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", name);
-}
-
-static int
-is_base10(const char *num)
-{
-	for (int i = 0; num[i] != '\0'; ++i)
-		if (!isdigit(num[i]))
-			return 0;
-	return 1;
 }
 
 void
