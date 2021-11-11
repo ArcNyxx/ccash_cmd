@@ -28,7 +28,7 @@ clean:
 
 dist: clean
 	mkdir -p ccash_cmd-$(VERSION)
-	cp -r LICENCE README Makefile ccash_cmd.1 config.mk $(SRC) $(HEAD) \
+	cp -r LICENCE README Makefile config.mk ccash_cmd.1 $(SRC) $(HEAD) \
 		config.def.h ccash_cmd-$(VERSION)
 	tar -cf ccash_cmd-$(VERSION).tar ccash_cmd-$(VERSION)
 	gzip ccash_cmd-$(VERSION).tar
