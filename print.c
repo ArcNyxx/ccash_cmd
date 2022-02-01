@@ -1,8 +1,6 @@
-/*
- * ccash_cmd - command line interface for ccash servers
+/* ccash_cmd - command line interface for ccash servers
  * Copyright (C) 2021 FearlessDoggo21
- * see LICENCE file for licensing information
- */
+ * see LICENCE file for licensing information */
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -20,7 +18,7 @@ static void print_prop(const char *body);
 static void
 print_log(const char *body)
 {
-	unsigned long amount, time;
+	size_t amount, time;
 	const char *sender, *recipient;
 	char *endp;
 	body += 1;
@@ -47,7 +45,7 @@ print_log(const char *body)
 static void
 print_prop(const char *body)
 {
-	unsigned long version, maxlog;
+	size_t version, maxlog;
 	char *endp;
 
 	version = strtoul(body + 11, &endp, 10);
@@ -90,7 +88,7 @@ print_res(const Args args, const Response res)
 	} else if (res.body[0] == '{') {
 		print_prop(res.body);
 	} else {
-		unsigned long value = strtol(res.body, NULL, 10);
+		size_t value = strtol(res.body, NULL, 10);
 		if (args.ep == &eps[13])
 			printf("ccash_cmd: server: users pruned (%lu)\n", value);
 		else

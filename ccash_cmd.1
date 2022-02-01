@@ -2,29 +2,62 @@
 .SH NAME
 ccash_cmd \- command line interface for ccash servers
 .SH SYNOPSIS
-\fBccash_cmd\fR [\fIcommand\fR] [\fIoption\fR ...]
+\fBccash_cmd\fP \fIcommand\fP [\fIflag\fP] [\fIoption\fP] ...
 .SH DESCRIPTION
-\fBccash_cmd\fR is a command line interface for \fBccash\fR servers focusing on command efficiency and usefulness as well as program size and speed.  For this reason, it allows both short and long versions of flags, it allows for compile-time inclusion of predetermined servers and usernames and passwords in a list for runtime use, it formats some server outputs and simplifies others for easier readability, and it is written in C.
+\fBccash_cmd\fP(1) is a command line utility for interfacing with \fBCCash\fP
+servers.  It focuses on efficiency and is thus written with configuration in
+mind.  Furthermore, simple flags and output formatting increase command
+throughput.
 .SH OPTIONS
 .TP
-[\fB\-n\fR, \fB\-\-name\fR = \fIname\fR]
-Sends a name with the request.  The provided name must conform with \fBccash\fR username restrictions, that is be between 3 and 16 characters long and be composed of lowercase letters, numbers, and underscores.
+[\fB\-n\fP|\fB\-\-name\fP = \fIname\fP]
+Sends a name with the request.  The provided name must conform with \fBccash\fP
+username restrictions: be between 3 and 16 characters long and be composed of
+lowercase letters, numbers, and underscores.
 .TP
-[\fB\-p\fR, \fB\-\-passwd\fR = \fIpasswd\fR]
+[\fB\-p\fP|\fB\-\-passwd\fP] [\fIpasswd\fP]
 Sends a password with the request.
 .TP
-[\fB\-c\fR, \fB\-\-amount\fR = \fIamount\fR]
+[\fB\-c\fP|\fB\-\-amount\fP] [\fIamount\fP]
 Sends an amount with the request.  This option must be a base-10 number.
 .TP
-[\fB\-t\fR, \fB\-\-time\fR = \fItime\fR]
-Sends a time with the request.  This option must be a base-10 number but is always optional.
+[\fB\-t\fP|\fB\-\-time\fP] [\fItime\fP]
+Sends a time with the request.  This option must be a base-10 number but is
+always optional.
 .TP
-[\fB\-a\fR, \fB\-\-auth\fR = \fB@\fIn\fR, \fIauth\fR]
-Selects the username and password. \fIn\fR is a one-based index into the configured \fIauth\fR array.  Alternatively, profide the full username and password of the user to authenticate as.  The provided username must comply with \fBccash\fR username restrictions (see \fIname\fR), and it must be combined with the password in HTTP basic authentification fashion: \fIusername\fR:\fIpassword\fR.
+[\fB\-a\fP|\fB\-\-auth\fP] [\fB@\fIn\fP|\fIauth\fP]
+Selects the username and password. \fIn\fP is a one-based index into the
+configured \fIauth\fP array.  Alternatively, profide the full username and
+password of the user to authenticate as.  The provided username must comply
+with \fBccash\fP username restrictions (see \fIname\fP), and it must be
+combined with the password in HTTP basic authentification fashion:
+\fIusername\fP:\fIpassword\fP.
 .TP
-[\fB\-s\fR, \fB\-\-server\fR = \fB@\fIn\fR, \fIserver\fR]
-Selects the server, \fIn\fR is a one-based index into the configured \fIservers\fR array.  Alternatively, provide the full address of the server.  This is a required argument.
+[\fB\-s\fP|\fB\-\-server\fP] [\fB@\fIn\fP|\fIserver\fP]
+Selects the server, \fIn\fP is a one-based index into the configured
+\fIservers\fP array.  Alternatively, provide the full address of the
+server.  This is a required argument.
 .SH CUSTOMISATION
-\fBccash_cmd\fR is configurable by creating a custom \fIconfig.h\fR and (re)compiling the source code.  Alternatively, it can be customised by directly editing the source code or even some static data arrays within it.  This keeps it fast, secure, and simple.
-.SH BUGS
-Send all bug reports to \fIhttps://github.com/fearlessdoggo21/ccash_cmd/issues\fR, and all patches to \fIhttps://github.com/fearlessdoggo21/ccash_cmd/pulls\fN.
+\fBccash_cmd\fP(1) is customised by creating a custom \fIconfig.h\fP and
+(re)compiling the source code.  Additionally, command configuration is in
+\fIendpoint.h\fP and flag configuration is in \fIarg.c\fP.  Source code
+modification to configure a program keeps it fast, secure, and simple.
+.SH EXAMPLE
+To send a /admin/verify_account request using a configured auth:
+.PP
+.EX
+ccash_cmd admin_verify_user --server ccash.example.com --auth @3
+.EE
+.PP
+To send a /user/balance?... request:
+.EX
+ccash_cmd get_bal --server @1 --name user1
+.EE
+.PP
+To send a /user/transfer request:
+.PP
+.EX
+ccash_cmd send_funds -s @4 -n user3 -c 100 -a user2:passwd
+.EE
+.SH AUTHOR
+Written by FearlessDoggo21.

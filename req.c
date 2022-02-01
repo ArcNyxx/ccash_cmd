@@ -1,8 +1,6 @@
-/*
- * ccash_cmd - command line interface for ccash servers
+/* ccash_cmd - command line interface for ccash servers
  * Copyright (C) 2021 FearlessDoggo21
- * see LICENCE file for licensing information
- */
+ * see LICENCE file for licensing information */
 
 #include <curl/curl.h>
 #include <limits.h>
@@ -16,7 +14,7 @@
 
 typedef struct memory {
         char *str;
-        unsigned long len, alloc;
+        size_t len, alloc;
 } Memory;
 
 static char *make_body(Args *args);
@@ -101,7 +99,7 @@ request(Args *args)
 
 	/* append the endpoint to the server, allocate >maximum endpoint length */
 	char *server;
-	unsigned long servlen = strlen(args->server);
+	size_t servlen = strlen(args->server);
 	if ((server = malloc(servlen + 50)) == NULL)
 		die("ccash_cmd: unable to allocate memory");
 
