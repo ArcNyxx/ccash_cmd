@@ -17,38 +17,55 @@ mind.  Furthermore, simple flags and output formatting increase command
 throughput.
 .SH OPTIONS
 .TP
-[\fB\-n\fP|\fB\-\-name\fP = \fIname\fP]
-Sends a name with the request.  The provided name must conform with \fBccash\fP
+Name
+Sends a name with the request.  The provided name must conform with
+.B CCash
 username restrictions: be between 3 and 16 characters long and be composed of
 lowercase letters, numbers, and underscores.
 .TP
-[\fB\-p\fP|\fB\-\-passwd\fP] [\fIpasswd\fP]
+Password
 Sends a password with the request.
 .TP
-[\fB\-c\fP|\fB\-\-amount\fP] [\fIamount\fP]
+Amount
 Sends an amount with the request.  This option must be a base-10 number.
 .TP
-[\fB\-t\fP|\fB\-\-time\fP] [\fItime\fP]
+Time
 Sends a time with the request.  This option must be a base-10 number but is
 always optional.
 .TP
-[\fB\-a\fP|\fB\-\-auth\fP] [\fB@\fIn\fP|\fIauth\fP]
-Selects the username and password. \fIn\fP is a one-based index into the
-configured \fIauth\fP array.  Alternatively, profide the full username and
-password of the user to authenticate as.  The provided username must comply
-with \fBccash\fP username restrictions (see \fIname\fP), and it must be
-combined with the password in HTTP basic authentification fashion:
-\fIusername\fP:\fIpassword\fP.
+Auth
+Selects the username and password.  
+.I n
+is a one-based index into the configured
+.I auth
+array.  Alternatively, profide the full username and password of the user to
+authenticate as.  The provided username must comply with
+.B CCash
+username restrictions (see
+.IR name ),
+and it must be combined with the password in HTTP basic authentification
+fashion:
+.IR username : password .
 .TP
-[\fB\-s\fP|\fB\-\-server\fP] [\fB@\fIn\fP|\fIserver\fP]
-Selects the server, \fIn\fP is a one-based index into the configured
-\fIservers\fP array.  Alternatively, provide the full address of the
-server.  This is a required argument.
+Server
+Selects the server, 
+.I n
+is a one-based index into the configured
+.I servers
+array.  Alternatively, provide the full address of the server.  This is a
+required argument.
 .SH CUSTOMISATION
-\fBccash_cmd\fP(1) is customised by creating a custom \fIconfig.h\fP and
-(re)compiling the source code.  Additionally, command configuration is in
-\fIendpoint.h\fP and flag configuration is in \fIarg.c\fP.  Source code
-modification to configure a program keeps it fast, secure, and simple.
+.BR ccash_cmd (1)
+is customised by creating a custom
+.I config.h
+and (re)compiling the source code.  Additionally, command configuration is in
+.I endpoint.h
+and flag configuration is in
+.IR arg.c ". "
+Source code modification to configure
+.BR ccash_cmd (1)
+keeps it fast, secure, and
+simple.
 .SH EXAMPLE
 To send a /admin/verify_account request using a configured auth:
 .PP
