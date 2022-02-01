@@ -2,7 +2,14 @@
 .SH NAME
 ccash_cmd \- command line interface for ccash servers
 .SH SYNOPSIS
-\fBccash_cmd\fP \fIcommand\fP [\fIflag\fP] [\fIoption\fP] ...
+.SY ccash_cmd
+.OP "-n|--name" name
+.OP "-p|--passwd" password
+.OP "-c|--amount" amount
+.OP "-t|--time" time
+.OP "-a|--auth" auth
+.OP "-s|--server" server
+.YS
 .SH DESCRIPTION
 \fBccash_cmd\fP(1) is a command line utility for interfacing with \fBCCash\fP
 servers.  It focuses on efficiency and is thus written with configuration in
