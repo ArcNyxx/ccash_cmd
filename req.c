@@ -56,7 +56,7 @@ write_data(void *buf, size_t size, size_t nmemb, void *data)
 	if (mem->len + size * nmemb >= mem->alloc)
 		if ((mem->str = realloc(mem->str,
 			(mem->alloc += size * nmemb + 2048))) == NULL)
-			die_perror("ccash_cmd: unable to allocate memory\n");
+			die("ccash_cmd: unable to allocate memory");
 
 	char *write = mem->str + mem->len; /* prevents sequencing error */
 	memcpy(write, buf, mem->len += size * nmemb);
@@ -94,7 +94,7 @@ request(Args *args)
 	Memory body = { .len = 0, .alloc = 4096 },
 		head = { .len = 0, .alloc = 4096 };
 	if ((body.str = malloc(4096)) == NULL || (head.str = malloc(4096)) == NULL)
-		die_perror("ccash_cmd: unable to allocate memory\n");
+		die("ccash_cmd: unable to allocate memory");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &head);
@@ -103,7 +103,7 @@ request(Args *args)
 	char *server;
 	unsigned long servlen = strlen(args->server);
 	if ((server = malloc(servlen + 50)) == NULL)
-		die_perror("ccash_cmd: unable to allocate memory\n");
+		die("ccash_cmd: unable to allocate memory");
 
 	memcpy(server, args->server, servlen);
 	if (server[servlen - 1] != '/')

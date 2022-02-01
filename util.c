@@ -1,28 +1,25 @@
-/*
- * ccash_cmd - command line interface for ccash servers
+/* ccash_cmd - command line interface for ccash servers
  * Copyright (C) 2021 FearlessDoggo21
- * see LICENCE file for licensing information
- */
+ * see LICENCE file for licensing information */
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "util.h"
 
 void
 die(const char *fmt, ...)
 {
-	va_list args;
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
+	if (fmt[strlen(fmt) - 1] == '\n') {
+		va_list ap;
+		va_start(ap, fmt);
+		vfprintf(stderr, fmt, ap);
+		va_end(ap);
+	} else {
+		perror(fmt);
+	}
 	exit(1);
-}
 
-void
-die_perror(const char *err)
-{
-	perror(err);
-	exit(1);
 }

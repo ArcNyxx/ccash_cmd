@@ -14,18 +14,8 @@
 #include "req.h"
 #include "print.h"
 
-static void print_fin(const char *fmt, ...);
 static void print_log(const char *body);
 static void print_prop(const char *body);
-
-static void
-print_fin(const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vfprintf(stdout, fmt, args);
-	va_end(args);
-}
 
 static void
 print_log(const char *body)
@@ -77,20 +67,20 @@ print_res(const Args args, const Response res)
 	switch(strtol(strchr(res.head, ' ') + 1, NULL, 10)) {
 	default: break;
 	case 204:
-		print_fin("ccash_cmd: server: success\n");
+		printf("ccash_cmd: server: success\n");
 		return;
 	case 401:
-		print_fin("ccash_cmd: server: invalid username or password (%s)\n",
+		printf("ccash_cmd: server: invalid username or password (%s)\n",
 			args.auth);
 		return;
 	case 404:
 		if (args.ep == &eps[10])
-			print_fin("ccash_cmd: server: logs are disabled\n");
+			printf("ccash_cmd: server: logs are disabled\n");
 		else
-			print_fin("ccash_cmd: server: user not found (%s)\n", args.name);
+			printf("ccash_cmd: server: user not found (%s)\n", args.name);
 		return;
 	case 409:
-		print_fin("ccash_cmd: server: user already exists (%s)\n", args.name);
+		printf("ccash_cmd: server: user already exists (%s)\n", args.name);
 		return;
 	}
 
@@ -102,8 +92,8 @@ print_res(const Args args, const Response res)
 	} else {
 		unsigned long value = strtol(res.body, NULL, 10);
 		if (args.ep == &eps[13])
-			print_fin("ccash_cmd: server: users pruned (%lu)\n", value);
+			printf("ccash_cmd: server: users pruned (%lu)\n", value);
 		else
-			print_fin("ccash_cmd: server: user's balance is now (%lu)\n", value);
+			printf("ccash_cmd: server: user's balance is now (%lu)\n", value);
 	}
 }

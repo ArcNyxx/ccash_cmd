@@ -1,8 +1,6 @@
-/*
- * ccash_cmd - command line interface for ccash servers
+/* ccash_cmd - command line interface for ccash servers
  * Copyright (C) 2021 FearlessDoggo21
- * see LICENCE file for licensing information
- */
+ * see LICENCE file for licensing information */
 
 #include <ctype.h>
 #include <stddef.h>
@@ -15,20 +13,18 @@
 #include "util.h"
 
 typedef struct flag {
-        const char *flag, *lflag;
+	const char *flag, *lflag;
 } Flag;
 
 static int is_base10(const char *num);
-static void verify_auth(const char *auth);
-static void verify_name(const char *name);
 
 static const Flag flags[] = {
-        { "-n", "--name" },
-        { "-p", "--passwd" },
-        { "-c", "--amount" },
-        { "-t", "--time" },
-        { "-a", "--auth" },
-        { "-s", "--server" }
+	{ "-n", "--name" },
+	{ "-p", "--passwd" },
+	{ "-c", "--amount" },
+	{ "-t", "--time" },
+	{ "-a", "--auth" },
+	{ "-s", "--server" }
 };
 
 static int
@@ -40,34 +36,10 @@ is_base10(const char *num)
 	return 1;
 }
 
-static void
-verify_auth(const char *str)
-{
-	int i;
-	for (i = 0; i < 16 && str[i] != '\0' && str[i] != ':'; ++i)
-		if (!isalnum(str[i]) && str[i] != '_')
-			die("ccash_cmd: invalid character in name (%c)\n", str[i]);
-        if (i < 3 || i > 16)
-                die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", str);
-	if (str[i] != ':')
-		die("ccash_cmd: auth name must be terminated with a colon (%s)\n", str);
-}
-
-static void
-verify_name(const char *name)
-{
-	int i;
-	for (i = 0; i < 16 && name[i] != '\0'; ++i)
-		if (!isalnum(name[i]) && name[i] != '_')
-			die("ccash_cmd: invalid character in name (%c)\n", name[i]);
-        if (i < 3 || i > 16)
-                die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", name);
-}
-
 void
 parse_args(Args *args, const char **argv)
 {
-	unsigned int i, j, index;
+	size_t i, index;
 	for (i = 0; i < LENGTH(eps); ++i)
 		if (!strcmp(eps[i].cmd, argv[0])) {
 			args->ep = &eps[i];
@@ -78,6 +50,7 @@ parse_args(Args *args, const char **argv)
 
 	/* parse arguments into struct by casting struct to cstring array */
 	for (i = 1; argv[i] != NULL && argv[i + 1] != NULL; i += 2) {
+		size_t j;
 		for (j = 0; j < LENGTH(flags); ++j)
 			if (!strcmp(argv[i], flags[j].flag) || !strcmp(argv[i], flags[j].lflag)) {
 				((const char **)args)[j] = argv[i + 1];
@@ -103,7 +76,13 @@ parse_args(Args *args, const char **argv)
 	}
 
 	if (args->ep->info & REQ_NAME) {
-		verify_name(args->name);
+		size_t j;
+		for (j = 0; j < 17 && args->name[j] != '\0'; ++j)
+			if (!isalnum(args->name[j]) && args->name[j] != '_')
+				die("ccash_cmd: invalid character in name (%c)\n", args->name[j]);
+		if (j < 3 || j > 16)
+			die("ccash_cmd: name must be between 3 and 16 characters (%s)\n",
+					args->name);
 		if (args->ep->info & REQ_NAME_APPEND)
 			return; /* skip unnecessary */
 	}
@@ -114,7 +93,14 @@ parse_args(Args *args, const char **argv)
 				die("ccash_cmd: 1-based auth index out of range (%d)\n", index);
 			args->auth = auth[index - 1];
 		}
-		verify_auth(args->auth);
+		size_t j;
+		for (j = 0; j < 16 && args->auth[j] != '\0' && args->auth[j] != ':'; ++j)
+			if (!isalnum(args->auth[j]) && args->auth[j] != '_')
+				die("ccash_cmd: invalid character in name (%c)\n", args->auth[j]);
+		if (j < 3 || j > 16)
+			die("ccash_cmd: name must be between 3 and 16 characters (%s)\n", args->auth);
+		if (args->auth[j] != ':')
+			die("ccash_cmd: auth name must be terminated with a colon (%s)\n", args->auth);
 	}
 	if (args->ep->info & REQ_AMOUNT && !is_base10(args->amount))
 		die("ccash_cmd: amount must be an integer");
