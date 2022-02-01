@@ -6,10 +6,14 @@ the data returned from the server for ease of viewing.
 
 Requirements
 ------------
-Edit config.mk to match your local setup
+In order to build ccash_cmd, you need the cURL header files.
 
-Afterwards enter the following command to build and install ccash_cmd (if
-necessary as root):
+Installation
+------------
+Edit config.mk to match your local setup.
+
+Afterwards, enter the following command to build and install ccash_cmd (if
+necessary, as root):
 
     make clean install
 
